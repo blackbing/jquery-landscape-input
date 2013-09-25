@@ -51,7 +51,7 @@
       $el = $(this);
       tagName = $el.prop('tagName');
       placeholder = $el.prop('placeholder');
-      $readyElement = $("<" + tagName + " placeholder='" + placeholder + "' style='position:absolute;left:0;top:0;z-index:999999999999;width:100%;height:100%;font-size:18px;display:none;'>");
+      $readyElement = $("<" + tagName + " placeholder='" + placeholder + "' style='position:fixed;left:0;top:0;z-index:999999999999;width:100%;height:100%;font-size:18px;display:none;'>");
       $el.data('$readyElement', $readyElement);
       handover = function(orientation, focus) {
         var $focusElement, value;
