@@ -6,6 +6,43 @@
 
 
 (function() {
+  var debounce;
+
+  debounce = function(func, wait, immediate) {
+    var args, context, result, timeout, timestamp;
+    timeout = void 0;
+    args = void 0;
+    context = void 0;
+    timestamp = void 0;
+    result = void 0;
+    return function() {
+      var callNow, later;
+      context = this;
+      args = arguments_;
+      timestamp = new Date();
+      later = function() {
+        var last;
+        last = (new Date()) - timestamp;
+        if (last < wait) {
+          return timeout = setTimeout(later, wait - last);
+        } else {
+          timeout = null;
+          if (!immediate) {
+            return result = func.apply(context, args);
+          }
+        }
+      };
+      callNow = immediate && !timeout;
+      if (!timeout) {
+        timeout = setTimeout(later, wait);
+      }
+      if (callNow) {
+        result = func.apply(context, args);
+      }
+      return result;
+    };
+  };
+
   $.fn.landscapeInput = function() {
     var $this;
     $this = $(this);
@@ -56,7 +93,7 @@
         $readyElement.appendTo('body');
         if (orientation === 90) {
           handover('landscape');
-          return $(window).on('resize.landscape', _.debounce((function() {
+          return $(window).on('resize.landscape', debounce((function() {
             return checkKeyboard($readyElement);
           }), 200));
         } else {
@@ -67,7 +104,7 @@
         var o_changed, orientation;
         $el = $(this);
         orientation = Math.abs(window.orientation);
-        o_changed = _.debounce((function() {
+        o_changed = debounce((function() {
           return orientationchanged($el);
         }), 100);
         if (orientation === 90) {

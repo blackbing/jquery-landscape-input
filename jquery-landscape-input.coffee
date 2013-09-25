@@ -2,6 +2,29 @@
 # this plugin is a solution for fixing landscape mode input style
 # author: blackbing at gmail dot com
 ###
+debounce = (func, wait, immediate) ->
+  timeout = undefined
+  args = undefined
+  context = undefined
+  timestamp = undefined
+  result = undefined
+  ->
+    context = this
+    args = arguments_
+    timestamp = new Date()
+    later = ->
+      last = (new Date()) - timestamp
+      if last < wait
+        timeout = setTimeout(later, wait - last)
+      else
+        timeout = null
+        result = func.apply(context, args)  unless immediate
+
+    callNow = immediate and not timeout
+    timeout = setTimeout(later, wait)  unless timeout
+    result = func.apply(context, args)  if callNow
+    result
+
 $.fn.landscapeInput = ()->
   $this = $(@)
 
@@ -50,14 +73,14 @@ $.fn.landscapeInput = ()->
       if orientation is 90
         handover('landscape')
         #if landscape, it need to considerate user hide keyboard
-        $(window).on('resize.landscape', _.debounce( (->checkKeyboard($readyElement)), 200))
+        $(window).on('resize.landscape', debounce( (->checkKeyboard($readyElement)), 200))
       else
         handover('portrait')
 
     $el.on('focusin', ($event)->
       $el = $(@)
       orientation = Math.abs window.orientation
-      o_changed = _.debounce( (->orientationchanged($el)), 100)
+      o_changed = debounce( (->orientationchanged($el)), 100)
       #check if landscape in originally
       if orientation is 90
         o_changed()
