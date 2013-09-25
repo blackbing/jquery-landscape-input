@@ -27,6 +27,49 @@ debounce = (func, wait, immediate) ->
 
 $.fn.landscapeInput = ()->
   $this = $(@)
+  $currentFocusIn = null
+  orientationchanged = ()->
+    $focusElement = $currentFocusIn
+    $(window).off('resize.landscape')
+    orientation = Math.abs window.orientation
+    $readyElement = $focusElement.data('$readyElement')
+    $readyElement.appendTo('body')
+    if orientation is 90
+      handover($focusElement, 'landscape')
+      #if landscape, it need to considerate user hide keyboard
+      $(window).on('resize.landscape', debounce( (->checkKeyboard($readyElement)), 200))
+    else
+      handover($focusElement, 'portrait')
+
+  handover = ($focusElement, orientation='landscape', focus='focus')->
+    $readyElement = $focusElement.data('$readyElement')
+    if orientation is 'landscape'
+      value = $focusElement.val()
+      $focusElement.blur()
+      $readyElement.val(value)
+      .show()
+      .prop('selectionStart', value.length)
+      .focus()
+
+    else if orientation is 'portrait'
+      value = $readyElement.val()
+      $readyElement.hide().remove()
+      $focusElement.val(value)
+
+      if focus is 'focus'
+        $focusElement
+        .focus()
+        .prop('selectionStart', value.length)
+      else
+        $focusElement.blur()
+
+  checkKeyboard = ( $readyElement )->
+    screen = window.screen
+    #it means keyboard is hided
+    if $readyElement.height() > screen.height/2
+      handover($currentFocusIn, 'portrait', 'dontfocus')
+
+  $(window).on('orientationchange.focusin', debounce(orientationchanged, 100))
 
   $this.each( (el)->
     $el = $(@)
@@ -36,64 +79,17 @@ $.fn.landscapeInput = ()->
 
     $el.data('$readyElement', $readyElement)
 
-    handover = (orientation='landscape', focus='focus')->
-      $focusElement = $el
-      $readyElement = $focusElement.data('$readyElement')
-      if orientation is 'landscape'
-        value = $focusElement.val()
-        $focusElement.blur()
-        $readyElement.val(value)
-        .show()
-        .prop('selectionStart', value.length)
-        .focus()
-
-      else if orientation is 'portrait'
-        value = $readyElement.val()
-        $readyElement.hide().remove()
-        $focusElement.val(value)
-
-        if focus is 'focus'
-          $focusElement
-          .focus()
-          .prop('selectionStart', value.length)
-        else
-          $focusElement.blur()
-
-    checkKeyboard = ( $readyElement )->
-      screen = window.screen
-      #it means keyboard is hided
-      if $readyElement.height() > screen.height/2
-        handover('portrait', 'dontfocus')
-
-    orientationchanged = ($focusElement)->
-      $(window).off('resize.landscape')
-      orientation = Math.abs window.orientation
-      $readyElement = $focusElement.data('$readyElement')
-      $readyElement.appendTo('body')
-      if orientation is 90
-        handover('landscape')
-        #if landscape, it need to considerate user hide keyboard
-        $(window).on('resize.landscape', debounce( (->checkKeyboard($readyElement)), 200))
-      else
-        handover('portrait')
-
     $el.on('focusin', ($event)->
       #make sure only one event will be triggered
       #$(window).off('orientationchange.focusin')
       $el = $(@)
       orientation = Math.abs window.orientation
-      o_changed = debounce( (->orientationchanged($el)), 100)
+      $currentFocusIn = $el
+      o_changed = debounce(orientationchanged, 100)
       #check if landscape in originally
       if orientation is 90
         o_changed()
-      if not $el.data('bind-orientation')
-        $(window).on('orientationchange.focusin', o_changed)
-        $el.data('bind-orientation', true)
 
       $event.preventDefault()
     )
-
-
-
   )
-
