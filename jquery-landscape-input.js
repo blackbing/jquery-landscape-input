@@ -10,51 +10,71 @@
     var $this;
     $this = $(this);
     return $this.each(function(el) {
-      var $el, $readyElement, handover, orientationchanged, placeholder, tagName;
+      var $el, $readyElement, checkKeyboard, handover, orientationchanged, placeholder, tagName;
       $el = $(this);
       tagName = $el.prop('tagName');
       placeholder = $el.prop('placeholder');
       $readyElement = $("<" + tagName + " placeholder='" + placeholder + "' style='position:absolute;left:0;top:0;z-index:999999999999;width:100%;height:100%;font-size:18px;display:none;'>");
       $el.data('$readyElement', $readyElement);
-      handover = function(orientation) {
+      handover = function(orientation, focus) {
         var $focusElement, value;
         if (orientation == null) {
           orientation = 'landscape';
+        }
+        if (focus == null) {
+          focus = 'focus';
         }
         $focusElement = $el;
         $readyElement = $focusElement.data('$readyElement');
         if (orientation === 'landscape') {
           value = $focusElement.val();
           $focusElement.blur();
-          return $readyElement.val(value).prop('selectionStart', value.length).show().focus();
+          return $readyElement.val(value).show().prop('selectionStart', value.length).focus();
         } else if (orientation === 'portrait') {
           value = $readyElement.val();
           $readyElement.hide().remove();
-          return $focusElement.val(value).prop('selectionStart', value.length).focus();
+          $focusElement.val(value);
+          if (focus === 'focus') {
+            return $focusElement.focus().prop('selectionStart', value.length);
+          } else {
+            return $focusElement.blur();
+          }
+        }
+      };
+      checkKeyboard = function($readyElement) {
+        var screen;
+        screen = window.screen;
+        if ($readyElement.height() > screen.height / 2) {
+          return handover('portrait', 'dontfocus');
         }
       };
       orientationchanged = function($focusElement) {
         var orientation;
+        $(window).off('resize.landscape');
         orientation = Math.abs(window.orientation);
         $readyElement = $focusElement.data('$readyElement');
         $readyElement.appendTo('body');
         if (orientation === 90) {
-          return handover('landscape');
+          handover('landscape');
+          return $(window).on('resize.landscape', _.debounce((function() {
+            return checkKeyboard($readyElement);
+          }), 200));
         } else {
           return handover('portrait');
         }
       };
       return $el.on('focusin', function($event) {
-        var orientation;
+        var o_changed, orientation;
         $el = $(this);
         orientation = Math.abs(window.orientation);
+        o_changed = _.debounce((function() {
+          return orientationchanged($el);
+        }), 100);
         if (orientation === 90) {
-          orientationchanged($el);
+          o_changed();
         }
         if (!$el.data('bind-orientation')) {
-          $(window).on('orientationchange.focusin', _.debounce((function() {
-            return orientationchanged($el);
-          }), 300));
+          $(window).on('orientationchange.focusin', o_changed);
           $el.data('bind-orientation', true);
         }
         return $event.preventDefault();

@@ -13,40 +13,56 @@ $.fn.landscapeInput = ()->
 
     $el.data('$readyElement', $readyElement)
 
-    handover = (orientation='landscape')->
+    handover = (orientation='landscape', focus='focus')->
       $focusElement = $el
       $readyElement = $focusElement.data('$readyElement')
       if orientation is 'landscape'
         value = $focusElement.val()
         $focusElement.blur()
         $readyElement.val(value)
+        .show()
         .prop('selectionStart', value.length)
-        .show().focus()
+        .focus()
 
       else if orientation is 'portrait'
         value = $readyElement.val()
         $readyElement.hide().remove()
         $focusElement.val(value)
-        .prop('selectionStart', value.length)
-        .focus()
+
+        if focus is 'focus'
+          $focusElement
+          .focus()
+          .prop('selectionStart', value.length)
+        else
+          $focusElement.blur()
+
+    checkKeyboard = ( $readyElement )->
+      screen = window.screen
+      #it means keyboard is hided
+      if $readyElement.height() > screen.height/2
+        handover('portrait', 'dontfocus')
 
     orientationchanged = ($focusElement)->
+      $(window).off('resize.landscape')
       orientation = Math.abs window.orientation
       $readyElement = $focusElement.data('$readyElement')
       $readyElement.appendTo('body')
       if orientation is 90
         handover('landscape')
+        #if landscape, it need to considerate user hide keyboard
+        $(window).on('resize.landscape', _.debounce( (->checkKeyboard($readyElement)), 200))
       else
         handover('portrait')
 
     $el.on('focusin', ($event)->
       $el = $(@)
       orientation = Math.abs window.orientation
+      o_changed = _.debounce( (->orientationchanged($el)), 100)
       #check if landscape in originally
       if orientation is 90
-        orientationchanged($el)
+        o_changed()
       if not $el.data('bind-orientation')
-        $(window).on('orientationchange.focusin', _.debounce( (->orientationchanged($el)), 300))
+        $(window).on('orientationchange.focusin', o_changed)
         $el.data('bind-orientation', true)
 
       $event.preventDefault()
