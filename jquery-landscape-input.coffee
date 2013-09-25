@@ -79,7 +79,7 @@ $.fn.landscapeInput = ()->
 
     $el.on('focusin', ($event)->
       #make sure only one event will be triggered
-      $(window).off('orientationchange.focusin')
+      #$(window).off('orientationchange.focusin')
       $el = $(@)
       orientation = Math.abs window.orientation
       o_changed = debounce( (->orientationchanged($el)), 100)
