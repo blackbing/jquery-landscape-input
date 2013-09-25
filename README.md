@@ -1,5 +1,4 @@
 #jquery-landscape-input
-======================
 
 It is a simple way to input text in landscape mode. When user type text in landscape mode, there is very limited  visible area include virtual keyboard. In native app, textarea will leave a full-screen input area, however there is no easy way in web. Hope it will solve a little problem in your development.
 
