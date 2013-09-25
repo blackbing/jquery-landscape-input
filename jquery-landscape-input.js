@@ -102,6 +102,7 @@
       };
       return $el.on('focusin', function($event) {
         var o_changed, orientation;
+        $(window).off('orientationchange.focusin');
         $el = $(this);
         orientation = Math.abs(window.orientation);
         o_changed = debounce((function() {
