@@ -18,7 +18,7 @@
     return function() {
       var callNow, later;
       context = this;
-      args = arguments_;
+      args = arguments;
       timestamp = new Date();
       later = function() {
         var last;
