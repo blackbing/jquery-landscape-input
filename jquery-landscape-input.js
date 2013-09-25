@@ -2,6 +2,7 @@
 /*
 # this plugin is a solution for fixing landscape mode input style
 # author: blackbing at gmail dot com
+# https://github.com/blackbing/jquery-landscape-input
 */
 
 
