@@ -10,7 +10,7 @@ debounce = (func, wait, immediate) ->
   result = undefined
   ->
     context = this
-    args = arguments_
+    args = arguments
     timestamp = new Date()
     later = ->
       last = (new Date()) - timestamp
