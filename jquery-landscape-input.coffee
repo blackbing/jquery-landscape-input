@@ -26,10 +26,33 @@ debounce = (func, wait, immediate) ->
     result = func.apply(context, args)  if callNow
     result
 
+$currentFocusIn = null
+#check the screen width and width
+#note: window.screen is untrusted, you will get screen width with pixel resolution in some browser
+getScreen = do ->
+  w = $(window).width()
+  h = $(window).height()
+  if w>h
+    tmp = w
+    w = h
+    h = tmp
+  ->
+    orientation = Math.abs window.orientation
+    if orientation is 90
+      screen =
+        width: h
+        height: w
+    else
+      screen =
+        width: w
+        height: h
+    screen
+
 $.fn.landscapeInput = ()->
   $this = $(@)
-  $currentFocusIn = null
   orientationchanged = ()->
+    if not $currentFocusIn
+      return
     $focusElement = $currentFocusIn
     $(window).off('resize.landscape')
     orientation = Math.abs window.orientation
@@ -38,7 +61,7 @@ $.fn.landscapeInput = ()->
     if orientation is 90
       handover($focusElement, 'landscape')
       #if landscape, it need to considerate user hide keyboard
-      $(window).on('resize.landscape', debounce( (->checkKeyboard($readyElement)), 200))
+      $(window).on('resize.landscape', _.debounce( (->checkKeyboard($readyElement)), 200))
     else
       handover($focusElement, 'portrait')
 
@@ -65,12 +88,16 @@ $.fn.landscapeInput = ()->
         $focusElement.blur()
 
   checkKeyboard = ( $readyElement )->
-    screen = window.screen
-    #it means keyboard is hided
-    if $readyElement.height() > screen.height/2
-      handover($currentFocusIn, 'portrait', 'dontfocus')
+    orientation = Math.abs window.orientation
+    if orientation is 90
+      screen = getScreen()
+      screenHeight = screen.height
+      screenWidth = screen.width
+      #it means keyboard is hided
+      if $readyElement.height() > screenHeight/2
+        handover($currentFocusIn, 'portrait', 'dontfocus')
 
-  $(window).on('orientationchange.focusin', debounce(orientationchanged, 100))
+  $(window).on('orientationchange.focusin', _.debounce(orientationchanged, 100))
 
   $this.each( (el)->
     $el = $(@)
@@ -86,7 +113,7 @@ $.fn.landscapeInput = ()->
       $el = $(@)
       orientation = Math.abs window.orientation
       $currentFocusIn = $el
-      o_changed = debounce(orientationchanged, 100)
+      o_changed = _.debounce(orientationchanged, 100)
       #check if landscape in originally
       if orientation is 90
         o_changed()
