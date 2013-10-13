@@ -7,7 +7,7 @@
 
 
 (function() {
-  var $currentFocusIn, debounce, getScreen, isIphone;
+  var $currentFocusIn, debounce, getScreen;
 
   debounce = function(func, wait, immediate) {
     var args, context, result, timeout, timestamp;
@@ -44,8 +44,6 @@
     };
   };
 
-  isIphone = navigator.userAgent.toLowerCase().indexOf("iphone") > 0;
-
   $currentFocusIn = null;
 
   getScreen = (function() {
@@ -79,7 +77,7 @@
     var $this, checkKeyboard, handover, orientationchanged;
     $this = $(this);
     orientationchanged = function() {
-      var $focusElement, $readyElement, orientation, _checkKeyboard;
+      var $focusElement, $readyElement, orientation;
       if (!$currentFocusIn) {
         return;
       }
@@ -90,14 +88,9 @@
       $readyElement.appendTo('body');
       if (orientation === 90) {
         handover($focusElement, 'landscape');
-        _checkKeyboard = debounce((function() {
+        return $(window).on('resize.landscape', debounce((function() {
           return checkKeyboard($readyElement);
-        }), 200);
-        if (!isIphone) {
-          return $(window).on('resize.landscape', _checkKeyboard);
-        } else {
-          return $readyElement.one('blur.landscape', _checkKeyboard);
-        }
+        }), 200));
       } else {
         return handover($focusElement, 'portrait');
       }
@@ -127,24 +120,13 @@
       }
     };
     checkKeyboard = function($readyElement) {
-      var inputHeight, keyboardHided, orientation, screen, screenHeight, screenWidth;
+      var orientation, screen, screenHeight, screenWidth;
       orientation = Math.abs(window.orientation);
       if (orientation === 90) {
         screen = getScreen();
         screenHeight = screen.height;
         screenWidth = screen.width;
-        inputHeight = $readyElement.height();
-        keyboardHided = false;
-        if (isIphone) {
-          if ((inputHeight < screenHeight / 2) < 50) {
-            keyboardHided = true;
-          }
-        } else {
-          if ($readyElement.height() > screen.height / 2) {
-            keyboardHided = true;
-          }
-        }
-        if (keyboardHided) {
+        if ($readyElement.height() > screenHeight / 2) {
           return handover($currentFocusIn, 'portrait', 'dontfocus');
         }
       }
