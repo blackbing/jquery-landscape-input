@@ -7,7 +7,7 @@
 
 
 (function() {
-  var debounce;
+  var $currentFocusIn, debounce, getScreen;
 
   debounce = function(func, wait, immediate) {
     var args, context, result, timeout, timestamp;
@@ -44,12 +44,43 @@
     };
   };
 
+  $currentFocusIn = null;
+
+  getScreen = (function() {
+    var h, tmp, w;
+    w = $(window).width();
+    h = $(window).height();
+    if (w > h) {
+      tmp = w;
+      w = h;
+      h = tmp;
+    }
+    return function() {
+      var orientation, screen;
+      orientation = Math.abs(window.orientation);
+      if (orientation === 90) {
+        screen = {
+          width: h,
+          height: w
+        };
+      } else {
+        screen = {
+          width: w,
+          height: h
+        };
+      }
+      return screen;
+    };
+  })();
+
   $.fn.landscapeInput = function() {
-    var $currentFocusIn, $this, checkKeyboard, handover, orientationchanged;
+    var $this, checkKeyboard, handover, orientationchanged;
     $this = $(this);
-    $currentFocusIn = null;
     orientationchanged = function() {
       var $focusElement, $readyElement, orientation;
+      if (!$currentFocusIn) {
+        return;
+      }
       $focusElement = $currentFocusIn;
       $(window).off('resize.landscape');
       orientation = Math.abs(window.orientation);
@@ -89,10 +120,15 @@
       }
     };
     checkKeyboard = function($readyElement) {
-      var screen;
-      screen = window.screen;
-      if ($readyElement.height() > screen.height / 2) {
-        return handover($currentFocusIn, 'portrait', 'dontfocus');
+      var orientation, screen, screenHeight, screenWidth;
+      orientation = Math.abs(window.orientation);
+      if (orientation === 90) {
+        screen = getScreen();
+        screenHeight = screen.height;
+        screenWidth = screen.width;
+        if ($readyElement.height() > screenHeight / 2) {
+          return handover($currentFocusIn, 'portrait', 'dontfocus');
+        }
       }
     };
     $(window).on('orientationchange.focusin', debounce(orientationchanged, 100));
