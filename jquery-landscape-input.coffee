@@ -26,6 +26,7 @@ debounce = (func, wait, immediate) ->
     result = func.apply(context, args)  if callNow
     result
 
+isIphone = navigator.userAgent.toLowerCase().indexOf("iphone") > 0
 $currentFocusIn = null
 #check the screen width and width
 #note: window.screen is untrusted, you will get screen width with pixel resolution in some browser
@@ -60,8 +61,12 @@ $.fn.landscapeInput = ()->
     $readyElement.appendTo('body')
     if orientation is 90
       handover($focusElement, 'landscape')
+      _checkKeyboard = debounce( (->checkKeyboard($readyElement)), 200)
       #if landscape, it need to considerate user hide keyboard
-      $(window).on('resize.landscape', _.debounce( (->checkKeyboard($readyElement)), 200))
+      if not isIphone
+        $(window).on('resize.landscape', _checkKeyboard)
+      else
+        $readyElement.one('blur.landscape', _checkKeyboard)
     else
       handover($focusElement, 'portrait')
 
@@ -93,8 +98,16 @@ $.fn.landscapeInput = ()->
       screen = getScreen()
       screenHeight = screen.height
       screenWidth = screen.width
-      #it means keyboard is hided
-      if $readyElement.height() > screenHeight/2
+      inputHeight = $readyElement.height()
+      #keyboard is hided
+      keyboardHided = false
+      if isIphone
+        if (inputHeight < screenHeight/2) < 50
+          keyboardHided = true
+      else
+        if $readyElement.height() > screen.height/2
+          keyboardHided = true
+      if keyboardHided
         handover($currentFocusIn, 'portrait', 'dontfocus')
 
   $(window).on('orientationchange.focusin', _.debounce(orientationchanged, 100))
