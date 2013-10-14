@@ -49,6 +49,7 @@ getScreen = do ->
         height: h
     screen
 
+
 $.fn.landscapeInput = ()->
   $this = $(@)
   orientationchanged = ()->
@@ -58,6 +59,7 @@ $.fn.landscapeInput = ()->
     $(window).off('resize.landscape')
     orientation = Math.abs window.orientation
     $readyElement = $focusElement.data('$readyElement')
+    $readyElement.on('touchstart', (e)->e.stopPropagation() )
     $readyElement.appendTo('body')
     if orientation is 90
       handover($focusElement, 'landscape')

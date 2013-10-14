@@ -87,6 +87,9 @@
       $(window).off('resize.landscape');
       orientation = Math.abs(window.orientation);
       $readyElement = $focusElement.data('$readyElement');
+      $readyElement.on('touchstart', function(e) {
+        return e.stopPropagation();
+      });
       $readyElement.appendTo('body');
       if (orientation === 90) {
         handover($focusElement, 'landscape');
