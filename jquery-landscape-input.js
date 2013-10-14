@@ -133,10 +133,11 @@
         $readyElement.hide().remove();
         $focusElement.val(value);
         if (focus === 'focus') {
-          return $focusElement.focus().prop('selectionStart', value.length);
+          $focusElement.focus().prop('selectionStart', value.length);
         } else {
-          return $focusElement.blur();
+          $focusElement.blur();
         }
+        return $currentFocusIn = null;
       }
     };
     checkKeyboard = function($readyElement) {

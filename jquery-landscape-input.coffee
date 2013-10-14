@@ -99,6 +99,7 @@ $.fn.landscapeInput = ()->
         .prop('selectionStart', value.length)
       else
         $focusElement.blur()
+      $currentFocusIn = null
 
   checkKeyboard = ( $readyElement )->
     isLandscape = checkOrientationIs('landscape')
