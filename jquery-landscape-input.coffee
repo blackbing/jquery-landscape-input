@@ -38,8 +38,8 @@ getScreen = do ->
     w = h
     h = tmp
   ->
-    orientation = Math.abs window.orientation
-    if orientation is 90
+    isLandscape = checkOrientationIs('landscape')
+    if isLandscape
       screen =
         width: h
         height: w
@@ -49,6 +49,12 @@ getScreen = do ->
         height: h
     screen
 
+#check orientation is check
+checkOrientationIs = (check)->
+  orientation = Math.abs window.orientation
+  ori = 'portrait'
+  ori = 'landscape' if orientation is 90
+  return ori is check
 
 $.fn.landscapeInput = ()->
   $this = $(@)
@@ -57,11 +63,11 @@ $.fn.landscapeInput = ()->
       return
     $focusElement = $currentFocusIn
     $(window).off('resize.landscape')
-    orientation = Math.abs window.orientation
+    isLandscape = checkOrientationIs('landscape')
     $readyElement = $focusElement.data('$readyElement')
     $readyElement.on('touchstart', (e)->e.stopPropagation() )
     $readyElement.appendTo('body')
-    if orientation is 90
+    if isLandscape
       handover($focusElement, 'landscape')
       _checkKeyboard = debounce( (->checkKeyboard($readyElement)), 200)
       #if landscape, it need to considerate user hide keyboard
@@ -95,8 +101,8 @@ $.fn.landscapeInput = ()->
         $focusElement.blur()
 
   checkKeyboard = ( $readyElement )->
-    orientation = Math.abs window.orientation
-    if orientation is 90
+    isLandscape = checkOrientationIs('landscape')
+    if isLandscape
       screen = getScreen()
       screenHeight = screen.height
       screenWidth = screen.width
@@ -126,11 +132,11 @@ $.fn.landscapeInput = ()->
       #make sure only one event will be triggered
       #$(window).off('orientationchange.focusin')
       $el = $(@)
-      orientation = Math.abs window.orientation
+      isLandscape = checkOrientationIs('landscape')
       $currentFocusIn = $el
       o_changed = debounce(orientationchanged, 100)
       #check if landscape in originally
-      if orientation is 90
+      if isLandscape
         o_changed()
 
       $event.preventDefault()
